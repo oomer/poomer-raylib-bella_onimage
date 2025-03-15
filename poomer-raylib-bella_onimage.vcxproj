@@ -44,16 +44,16 @@
     <ClCompile>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>PSEUDODEBUG;_CONSOLE;DL_USE_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PSEUDODEBUG;_CONSOLE;DL_USE_SHARED;NOMINMAX;WIN32_LEAN_AND_MEAN;NOGDI;NOUSER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\bella_engine_sdk\src;..\raylib\src;..\raygui\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\bella_engine_sdk-24.6.0\src;..\raylib\src;..\raygui\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>lib;..\raylib\src</AdditionalLibraryDirectories>
-      <AdditionalDependencies>bella_engine_sdk.lib;raylib.lib;Shlwapi.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>lib;..\raylib\build\raylib\Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>bella_engine_sdk.lib;raylib.lib;Shlwapi.lib;vulkan-1.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>vulkan-1.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
@@ -63,16 +63,16 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;DL_USE_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\bella_engine_sdk\src;..\raylib\src;..\raygui\src</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;DL_USE_SHARED;NOMINMAX;WIN32_LEAN_AND_MEAN;NOGDI;NOUSER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\bella_engine_sdk-24.6.0\src;..\raylib\src;..\raygui\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>lib;..\raylib\src;..\bella_engine_sdk\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>bella_engine_sdk.lib;raylib.lib;Shlwapi.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>lib;..\raylib\build\raylib\Release;..\bella_engine_sdk-24.6.0\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>bella_engine_sdk.lib;raylib.lib;Shlwapi.lib;vulkan-1.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>vulkan-1.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
@@ -90,53 +90,50 @@
   <ItemDefinitionGroup>
     <PostBuildEvent>
       <Command>echo Post-build event started &amp; 
-      copy "$(ProjectDir)..\bella_engine_sdk\lib\bella_engine_sdk.dll" "$(TargetDir)" &amp; 
+      copy "$(ProjectDir)..\bella_engine_sdk-24.6.0\lib\bella_engine_sdk.dll" "$(TargetDir)" &amp; 
       echo bella_engine_sdk.dll copied &amp; 
-      copy "$(ProjectDir)..\bella_engine_sdk\lib\dl_core.dll" "$(TargetDir)" &amp; 
+      copy "$(ProjectDir)..\bella_engine_sdk-24.6.0\lib\dl_core.dll" "$(TargetDir)" &amp; 
       echo dl_core.dll copied &amp; 
-      copy "$(ProjectDir)..\bella_engine_sdk\lib\dl_oidn_core.dll" "$(TargetDir)" &amp; 
+      copy "$(ProjectDir)..\bella_engine_sdk-24.6.0\lib\dl_oidn_core.dll" "$(TargetDir)" &amp; 
       echo dl_oidn_core.dll copied &amp; 
-      copy "$(ProjectDir)..\raylib\src\raylib.dll" "$(TargetDir)" &amp; 
-      echo raylib.dll copied &amp; 
       echo Post-build event finished</Command>
-
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-      <ClInclude Include="..\bella_engine_sdk\src\bella_sdk\api.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\bella_sdk\bella_engine.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\bella_sdk\bella_nodeapi.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\bella_sdk\bella_scene.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\bella_sdk\bella_sceneapi.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\bella_sdk\bella_types.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\api.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_args.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_array.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_compress.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_defines.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_file.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_fs.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_hash.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_hashmap.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_hw.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_licensing.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_logging.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_main.inl" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_math.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_nullable.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_os.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_path.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_pcgrng.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_platform.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_references.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_refvector.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_string.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_stringio.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_time.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_topomap.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_types.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_vector.h" />
-    <ClInclude Include="..\bella_engine_sdk\src\dl_core\dl_version.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\bella_sdk\api.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\bella_sdk\bella_engine.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\bella_sdk\bella_nodeapi.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\bella_sdk\bella_scene.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\bella_sdk\bella_sceneapi.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\bella_sdk\bella_types.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\api.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_args.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_array.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_compress.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_defines.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_file.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_fs.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_hash.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_hashmap.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_hw.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_licensing.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_logging.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_main.inl" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_math.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_nullable.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_os.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_path.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_pcgrng.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_platform.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_references.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_refvector.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_string.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_stringio.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_time.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_topomap.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_types.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_vector.h" />
+    <ClInclude Include="..\bella_engine_sdk-24.6.0\src\dl_core\dl_version.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="poomer-raylib-bella_onimage.cpp" />
@@ -147,8 +144,8 @@
     <None Include="makefile" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\bella_engine_sdk\lib\bella_engine_sdk.lib" />
-    <Library Include="..\raylib\src\raylib.lib" />
+    <Library Include="..\bella_engine_sdk-24.6.0\lib\bella_engine_sdk.lib" />
+    <Library Include="..\raylib\build\raylib\Release\raylib.lib" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="license.txt" />
@@ -158,4 +155,5 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
+
 

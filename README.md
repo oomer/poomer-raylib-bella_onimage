@@ -14,13 +14,14 @@ workdir/
 
 Download SDK for your OS and drag bella_engine_sdk into your workdir
 
-[bella_engine_sdk MacOS](https://downloads.bellarender.com/bella_engine_sdk-24.6.0.dmg)
-[bella_engine_sdk Linux](https://downloads.bellarender.com/bella_engine_sdk-24.6.0.tar.gz)
-[bella_engine_sdk Win](https://downloads.bellarender.com/bella_engine_sdk-24.6.0.zip)
+- [bella_engine_sdk MacOS](https://downloads.bellarender.com/bella_engine_sdk-24.6.0.dmg)
+- [bella_engine_sdk Linux](https://downloads.bellarender.com/bella_engine_sdk-24.6.0.tar.gz)
+- [bella_engine_sdk Win](https://downloads.bellarender.com/bella_engine_sdk-24.6.0.zip)
 
-MacOS/Linux
 
-extra linux
+# MacOS/Linux
+
+extra linux dependencies
 ```
 apt install libx11-dev
 apt install xorg-dev
@@ -40,9 +41,17 @@ cd poomer-raylib-bella_onimage
 make
 ```
 
-Windows
+# Windows
 ```
-[TODO] document how to build raylib 
+cd workdir
+git clone https://github.com/raysan5/raylib.git
+cd raylib
+mkdir build
+cd build
+cmake ..
+msbuild raylib.sln /p:Configuration=Release 
+cd ../..
+git clone https://github.com/raysan5/raygui.git
 git clone https://github.com/oomer/poomer-raylib-bella_onimage.git
 msbuild poomer-raylib-bella_onimage.vcxproj /p:Configuration=release /p:Platform=x64 /p:PlatformToolset=v143
 ```

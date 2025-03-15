@@ -1,3 +1,14 @@
+// Add these definitions before any includes to prevent Windows API conflicts
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#define NOGDI
+#define NOUSER
+
+// Include Windows.h first to gain control over its namespace
+#if defined(_WIN32) || defined(_WIN64) || defined(WIN32) || defined(WIN64)
+#include <windows.h>
+#endif
+
 #include <functional>
 #include <string>
 #include <cmath>
@@ -20,7 +31,7 @@ namespace rl {
     using Vector2 = ::Vector2;
     using Color = ::Color;
     
-    // Add function aliases
+    // Add function aliases - make sure to include ALL raylib functions you use
     using ::InitWindow;
     using ::CloseWindow;
     using ::IsWindowReady;
@@ -43,6 +54,7 @@ namespace rl {
     using ::GetMouseWheelMove;
     using ::IsMouseButtonPressed;
     using ::IsMouseButtonReleased;
+    using ::ShowCursor;
 }
 
 // Define a callback type for receiving image data from the path tracer
