@@ -16,7 +16,7 @@ workdir/
 └── poomer-raylib-bella_onimage/
 ```
 
-Download SDK for your OS and drag bella_engine_sdk into your workdir
+Download SDK for your OS and drag bella_engine_sdk into your workdir. On Windows rename unzipped folder by removing version ie bella_engine_sdk-24.6.0 -> bella_engine_sdk
 
 - [bella_engine_sdk MacOS](https://downloads.bellarender.com/bella_engine_sdk-24.6.0.dmg)
 - [bella_engine_sdk Linux](https://downloads.bellarender.com/bella_engine_sdk-24.6.0.tar.gz)

@@ -20,8 +20,10 @@
 
 #include "bella_sdk/bella_engine.h"
 #include "dl_core/dl_fs.h"
-using namespace dl;
-using namespace dl::bella_sdk;
+//using namespace dl;
+//using namespace dl::bella_sdk;
+namespace bsdk = dl::bella_sdk;
+
 
 // Create namespace aliases for raylib types that conflict with bella_sdk
 namespace rl {
@@ -100,7 +102,7 @@ private:
     float orbitSpeed = 0.5f;
     float panSpeed = 0.01f;
     rl::Vector2 prevMousePos = {0, 0};
-    Engine* engine = nullptr;  // Reference to the bella engine for camera control
+    bsdk::Engine* engine = nullptr;  // Reference to the bella engine for camera control
     
     // Store initial camera state for reset functionality
     bool hasInitialCamera = false;
@@ -138,7 +140,7 @@ public:
     }
     
     // Set the engine reference for camera control
-    void setEngine(Engine* engineRef) {
+    void setEngine(bsdk::Engine* engineRef) {
         engine = engineRef;
         
         // Mark that we have an initial camera state
@@ -330,11 +332,11 @@ public:
                 float wheelMove = rl::GetMouseWheelMove();
                 if (wheelMove != 0.0f) {
                     if (engine && engine->rendering()) {
-                        Scene::EventScope eventScope(engine->scene());
+                        bsdk::Scene::EventScope eventScope(engine->scene());
                         // Create a Vec2 with y component only for dolly effect
-                        Vec2 dollyDelta;
+                        dl::Vec2 dollyDelta;
                         dollyDelta.y = wheelMove * 0.8;
-                        bella_sdk::zoomCamera( engine->scene().cameraPath(), dollyDelta, true );
+                        bsdk::zoomCamera( engine->scene().cameraPath(), dollyDelta, true );
                     }
                 }
                 
@@ -425,9 +427,9 @@ public:
             
             // Only orbit if there's actual movement
             if (deltaX != 0.0f || deltaY != 0.0f) {
-                // Create a Vec2 for the delta (using bella_sdk's Vec2)
+                // Create a Vec2 for the delta (using bsdk's Vec2)
                 // Fix: Initialize Vec2 properly according to its API
-                Vec2 delta;
+                dl::Vec2 delta;
                 delta.x = deltaX;
                 delta.y = deltaY;
                 
@@ -437,9 +439,9 @@ public:
                     // This collects all scene changes within this scope and applies them together
                     // when the eventScope object is destroyed at the end of this block.
                     // It improves performance and ensures consistency of multiple scene changes.
-                    Scene::EventScope eventScope(engine->scene());
-                    // Use the bella_sdk namespace to avoid ambiguity with Path
-                    bella_sdk::orbitCamera(engine->scene().cameraPath(), delta);
+                    bsdk::Scene::EventScope eventScope(engine->scene());
+                    // Use the bsdk namespace to avoid ambiguity with Path
+                    bsdk::orbitCamera(engine->scene().cameraPath(), delta);
                 }
                 
                 // Update previous position for next frame
@@ -457,8 +459,8 @@ public:
             
             // Only pan if there's actual movement
             if (deltaX != 0.0f || deltaY != 0.0f) {
-                // Create a Vec2 for the delta (using bella_sdk's Vec2)
-                Vec2 delta;
+                // Create a Vec2 for the delta (using bsdk's Vec2)
+                dl::Vec2 delta;
                 delta.x = deltaX;
                 delta.y = deltaY;
                 
@@ -467,8 +469,8 @@ public:
                     // This collects all scene changes within this scope and applies them together
                     // when the eventScope object is destroyed at the end of this block.
                     // It improves performance and ensures consistency of multiple scene changes.
-                    Scene::EventScope eventScope(engine->scene());
-                    bella_sdk::panCamera(engine->scene().cameraPath(), delta, true);
+                    bsdk::Scene::EventScope eventScope(engine->scene());
+                    bsdk::panCamera(engine->scene().cameraPath(), delta, true);
                 }
                 
                 // Update previous position for next frame
@@ -499,29 +501,29 @@ public:
 // Forward declaration
 class PathTracerPreview;
 
-// Custom engine observer that connects bella_sdk's Image to our PathTracerPreview
-struct BellaEngineObserver : public EngineObserver {
+// Custom engine observer that connects bsdk's Image to our PathTracerPreview
+struct BellaEngineObserver : public bsdk::EngineObserver {
 private:
     PathTracerPreview* preview;
 
 public:
     BellaEngineObserver(PathTracerPreview* preview) : preview(preview) {}
 
-    void onStarted(String pass) override {
+    void onStarted(dl::String pass) override {
         //logInfo("Started pass %s", pass.buf());
     }
     
-    void onStatus(String pass, String status) override {
+    void onStatus(dl::String pass, dl::String status) override {
         //logInfo("%s [%s]", status.buf(), pass.buf());
     }
     
-    void onProgress(String pass, Progress progress) override {
+    void onProgress(dl::String pass, bsdk::Progress progress) override {
         //logInfo("%s [%s]", progress.toString().buf(), pass.buf());
     }
     
     // This is the key method that receives images from the bella engine
     // IMPORTANT: This method is called from the bella engine's thread, NOT the main thread
-    void onImage(String pass, dl::bella_sdk::Image image) override {
+    void onImage(dl::String pass, bsdk::Image image) override {
         //logInfo("Received image from bella: %d x %d", (int)image.width(), (int)image.height());
         
         // Get the dimensions of the image
@@ -539,7 +541,7 @@ public:
             
             // Get the raw RGBA data pointer - rgba8() returns Rgba8* (RgbaT<unsigned char>*)
             // No mutex needed as the developers confirmed the data survives within this callback
-            Rgba8* rgba_data = image.rgba8();
+            dl::Rgba8* rgba_data = image.rgba8();
             
             if (!rgba_data) {
                 std::cerr << "ERROR: rgba8() returned NULL" << std::endl;
@@ -575,17 +577,17 @@ public:
         }
     }
     
-    void onError(String pass, String msg) override {
+    void onError(dl::String pass, dl::String msg) override {
         //logError("%s [%s]", msg.buf(), pass.buf());
     }
     
-    void onStopped(String pass) override {
+    void onStopped(dl::String pass) override {
         //logInfo("Stopped %s", pass.buf());
     }
 };
 
 #include "dl_core/dl_main.inl"
-int DL_main(Args& args)
+int DL_main(dl::Args& args)
 {
     try {
         SetTraceLogLevel(LOG_ERROR); 
@@ -608,7 +610,7 @@ int DL_main(Args& args)
         //std::cout << "OpenGL context initialized" << std::endl;
         
         // Initialize the bella engine
-        Engine engine;
+        bsdk::Engine engine;
         engine.scene().loadDefs();
         engine.enableInteractiveMode();
         engine.enableDisplayTransform();
@@ -621,21 +623,21 @@ int DL_main(Args& args)
         engine.subscribe(&engineObserver);
 
         // Get the preview scene with material sphere
-        auto path = bella_sdk::previewPath();
+        auto path = bsdk::previewPath();
         if (path != "") {
             //std::cout << "Loading scene: " << path.buf() << std::endl;
             //logInfo("Loading scene: %s", path.buf());
             
             // Use the read method to load the scene
             if (!engine.scene().read(path)) {
-                std::cerr << "ERROR: Failed to read " << path.buf() << " from " << fs::currentDir().buf() << std::endl;
-                logError("Failed to read %s from %s", path.buf(), fs::currentDir().buf());
+                std::cerr << "ERROR: Failed to read " << path.buf() << " from " << dl::fs::currentDir().buf() << std::endl;
+                dl::logError("Failed to read %s from %s", path.buf(), dl::fs::currentDir().buf());
                 return 1;
             }
             
             if (!engine.start()) {
                 std::cerr << "ERROR: Engine failed to start" << std::endl;
-                logError("Engine failed to start.");
+                dl::logError("Engine failed to start.");
                 return 1;
             }
             
