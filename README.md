@@ -25,7 +25,7 @@ Download SDK for your OS and drag bella_engine_sdk into your workdir. On Windows
 
 # MacOS/Linux
 
-extra linux dependencies
+Linux dependencies
 ```
 apt install libx11-dev
 apt install xorg-dev
@@ -36,7 +36,7 @@ cd workdir
 git clone https://github.com/raysan5/raylib.git
 cd raylib/src
 make
-cd ../examples
+cd ../examples 
 make
 cd ../..
 git clone https://github.com/raysan5/raygui.git
@@ -46,6 +46,9 @@ make
 ```
 
 # Windows
+- Install Visual Studio Community 2022 
+- Add Desktop development with C++ workload
+- Launch x64 Native tools Command Prompt for VS2022
 ```
 cd workdir
 git clone https://github.com/raysan5/raylib.git
