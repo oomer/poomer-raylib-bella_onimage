@@ -1,6 +1,11 @@
 # poomer-raylib-bella_onimage
 
+c++ prototype GUI interface for [Bella Path Tracer](https://bellarender.com) using raylib/raygui with command line build instructions fro MacOS/Win/Linux
 
+
+<img src="resources/raylibmac.png" alt="Alt text" width="225" height="225">
+<img src="resources/raylibubuntu.png" alt="Alt text" width="225" height="225">
+<img src="resources/raylibwin.png" alt="Alt text" width="225" height="225">
 
 # Build
 
