@@ -18,12 +18,14 @@
 #include <mutex>  // For thread synchronization
 #include <queue>  // For the thread-safe image queue
 
-#include "bella_sdk/bella_engine.h"
-#include "dl_core/dl_fs.h"
-//using namespace dl;
-//using namespace dl::bella_sdk;
-namespace bsdk = dl::bella_sdk;
+//#include "bella_sdk/bella_engine.h"
+//#include "dl_core/dl_fs.h"
 
+#include "../bella_engine_sdk/src/bella_sdk/bella_engine.h" // For rendering and scene creation in Bella
+#include "../bella_engine_sdk/src/dl_core/dl_main.inl" // Core functionality from the Diffuse Logic engine
+#include "../oom/oom_license.h" // common misc code
+#include "../oom/oom_bella_long.h"    // common misc code
+#include "../oom/oom_bella_engine.h"    // common misc code
 
 // Create namespace aliases for raylib types that conflict with bella_sdk
 namespace rl {
@@ -102,7 +104,7 @@ private:
     float orbitSpeed = 0.5f;
     float panSpeed = 0.01f;
     rl::Vector2 prevMousePos = {0, 0};
-    bsdk::Engine* engine = nullptr;  // Reference to the bella engine for camera control
+    dl::bella_sdk::Engine* engine = nullptr;  // Reference to the bella engine for camera control
     
     // Store initial camera state for reset functionality
     bool hasInitialCamera = false;
@@ -140,7 +142,7 @@ public:
     }
     
     // Set the engine reference for camera control
-    void setEngine(bsdk::Engine* engineRef) {
+    void setEngine(dl::bella_sdk::Engine* engineRef) {
         engine = engineRef;
         
         // Mark that we have an initial camera state
@@ -332,11 +334,11 @@ public:
                 float wheelMove = rl::GetMouseWheelMove();
                 if (wheelMove != 0.0f) {
                     if (engine && engine->rendering()) {
-                        bsdk::Scene::EventScope eventScope(engine->scene());
+                        dl::bella_sdk::Scene::EventScope eventScope(engine->scene());
                         // Create a Vec2 with y component only for dolly effect
                         dl::Vec2 dollyDelta;
                         dollyDelta.y = wheelMove * 0.8;
-                        bsdk::zoomCamera( engine->scene().cameraPath(), dollyDelta, true );
+                        dl::bella_sdk::zoomCamera( engine->scene().cameraPath(), dollyDelta, true );
                     }
                 }
                 
@@ -439,9 +441,9 @@ public:
                     // This collects all scene changes within this scope and applies them together
                     // when the eventScope object is destroyed at the end of this block.
                     // It improves performance and ensures consistency of multiple scene changes.
-                    bsdk::Scene::EventScope eventScope(engine->scene());
+                    dl::bella_sdk::Scene::EventScope eventScope(engine->scene());
                     // Use the bsdk namespace to avoid ambiguity with Path
-                    bsdk::orbitCamera(engine->scene().cameraPath(), delta);
+                    dl::bella_sdk::orbitCamera(engine->scene().cameraPath(), delta);
                 }
                 
                 // Update previous position for next frame
@@ -469,8 +471,8 @@ public:
                     // This collects all scene changes within this scope and applies them together
                     // when the eventScope object is destroyed at the end of this block.
                     // It improves performance and ensures consistency of multiple scene changes.
-                    bsdk::Scene::EventScope eventScope(engine->scene());
-                    bsdk::panCamera(engine->scene().cameraPath(), delta, true);
+                    dl::bella_sdk::Scene::EventScope eventScope(engine->scene());
+                    dl::bella_sdk::panCamera(engine->scene().cameraPath(), delta, true);
                 }
                 
                 // Update previous position for next frame
@@ -502,7 +504,7 @@ public:
 class PathTracerPreview;
 
 // Custom engine observer that connects bsdk's Image to our PathTracerPreview
-struct BellaEngineObserver : public bsdk::EngineObserver {
+struct BellaEngineObserver : public dl::bella_sdk::EngineObserver {
 private:
     PathTracerPreview* preview;
 
@@ -517,13 +519,13 @@ public:
         //logInfo("%s [%s]", status.buf(), pass.buf());
     }
     
-    void onProgress(dl::String pass, bsdk::Progress progress) override {
+    void onProgress(dl::String pass, dl::bella_sdk::Progress progress) override {
         //logInfo("%s [%s]", progress.toString().buf(), pass.buf());
     }
     
     // This is the key method that receives images from the bella engine
     // IMPORTANT: This method is called from the bella engine's thread, NOT the main thread
-    void onImage(dl::String pass, bsdk::Image image) override {
+    void onImage(dl::String pass, dl::bella_sdk::Image image) override {
         //logInfo("Received image from bella: %d x %d", (int)image.width(), (int)image.height());
         
         // Get the dimensions of the image
@@ -586,7 +588,7 @@ public:
     }
 };
 
-#include "dl_core/dl_main.inl"
+//#include "dl_core/dl_main.inl"
 int DL_main(dl::Args& args)
 {
     try {
@@ -610,7 +612,7 @@ int DL_main(dl::Args& args)
         //std::cout << "OpenGL context initialized" << std::endl;
         
         // Initialize the bella engine
-        bsdk::Engine engine;
+        dl::bella_sdk::Engine engine;
         engine.scene().loadDefs();
         engine.enableInteractiveMode();
         engine.enableDisplayTransform();
@@ -623,7 +625,7 @@ int DL_main(dl::Args& args)
         engine.subscribe(&engineObserver);
 
         // Get the preview scene with material sphere
-        auto path = bsdk::previewPath();
+        auto path = dl::bella_sdk::previewPath();
         if (path != "") {
             //std::cout << "Loading scene: " << path.buf() << std::endl;
             //logInfo("Loading scene: %s", path.buf());
