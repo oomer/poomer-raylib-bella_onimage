@@ -1,3 +1,14 @@
+#ifdef __APPLE__
+#include <stdlib.h>
+#include <stdio.h>
+// Force the environment variable using putenv which is more reliable
+// This must be set before any Objective-C classes are loaded
+static const char* objc_disable_warning = "OBJC_DISABLE_CLASS_DUP_WARNING=YES";
+static bool _init_env = (putenv((char*)objc_disable_warning), true);
+#endif
+
+#include <chrono>
+
 // Add these definitions before any includes to prevent Windows API conflicts
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
@@ -13,6 +24,8 @@
 #include <string>
 #include <cmath>
 #include <iostream>
+// Include our fix header first
+#include "raylib_objc_fix.h"
 // Include raylib directly but don't use its namespace
 #include <raylib.h>
 #include <mutex>  // For thread synchronization
@@ -24,7 +37,8 @@
 #include "../bella_engine_sdk/src/bella_sdk/bella_engine.h" // For rendering and scene creation in Bella
 #include "../bella_engine_sdk/src/dl_core/dl_main.inl" // Core functionality from the Diffuse Logic engine
 #include "../oom/oom_license.h" // common misc code
-#include "../oom/oom_bella_long.h"    // common misc code
+#include "../oom/oom_dl_misc.h"    // common misc code
+#include "../oom/oom_misc.h"    // common misc code
 #include "../oom/oom_bella_engine.h"    // common misc code
 
 // Create namespace aliases for raylib types that conflict with bella_sdk
@@ -62,6 +76,10 @@ namespace rl {
 }
 
 // Define a callback type for receiving image data from the path tracer
+// This creates a type alias called 'OnImageCallback' that represents a function that:
+// 1. Takes image data (pointer to pixels), width, height, and number of color channels as parameters
+// 2. Returns void (nothing)
+// std::function is a flexible wrapper that can store any callable object (functions, lambdas, etc.)
 using OnImageCallback = std::function<void(const unsigned char* data, int width, int height, int channels)>;
 
 // Structure to hold image data in the queue
@@ -95,7 +113,8 @@ private:
     // This is crucial because OpenGL operations (like texture creation) must happen on the main thread
     std::queue<ImageData> imageQueue;
     
-    // Callback for receiving image data
+    // This member variable stores a function that will be called when new image data arrives
+    // It will be set to a lambda function in the constructor
     OnImageCallback onImageCallback;
     
     // Mouse interaction properties
@@ -132,8 +151,10 @@ public:
         rl::SetTargetFPS(60);
         
         // THREAD SAFETY: Set up the callback that will be called by the path tracer
-        // Instead of directly updating the image (which would create textures in a non-main thread),
-        // we queue the image data for later processing by the main thread
+        // This creates a lambda function (an anonymous function) that captures 'this' pointer
+        // so it can access the current instance's methods.
+        // When this callback is invoked later with image data, it will call queueImageData
+        // to safely pass the data between threads.
         onImageCallback = [this](const unsigned char* data, int width, int height, int channels) {
             this->queueImageData(data, width, height, channels);
         };
@@ -163,7 +184,9 @@ public:
         rl::CloseWindow();
     }
     
-    // Get the callback that the path tracer should call when new image data is available
+    // This method returns the callback function so other components can use it
+    // The 'const' means this method doesn't modify the class state
+    // It returns a copy of the callback function
     OnImageCallback getCallback() const {
         return onImageCallback;
     }
@@ -486,7 +509,9 @@ public:
         // Load an image from file - use raylib's Image type
         rl::Image image = rl::LoadImage(filename);
         if (image.data != NULL) {
-            // Call our callback with the image data
+            // Call our callback function with the image data to process it
+            // This simulates what would happen when the path tracer produces an image
+            // It determines the number of channels based on the image format
             onImageCallback(
                 static_cast<const unsigned char*>(image.data),
                 image.width,
@@ -503,7 +528,7 @@ public:
 // Forward declaration
 class PathTracerPreview;
 
-// Custom engine observer that connects bsdk's Image to our PathTracerPreview
+// Custom override engine observer that connects bsdk's Image to our PathTracerPreview
 struct BellaEngineObserver : public dl::bella_sdk::EngineObserver {
 private:
     PathTracerPreview* preview;
@@ -512,21 +537,21 @@ public:
     BellaEngineObserver(PathTracerPreview* preview) : preview(preview) {}
 
     void onStarted(dl::String pass) override {
-        //logInfo("Started pass %s", pass.buf());
+        dl::logInfo("Started pass %s", pass.buf());
     }
     
     void onStatus(dl::String pass, dl::String status) override {
-        //logInfo("%s [%s]", status.buf(), pass.buf());
+        dl::logInfo("%s [%s]", status.buf(), pass.buf());
     }
     
     void onProgress(dl::String pass, dl::bella_sdk::Progress progress) override {
-        //logInfo("%s [%s]", progress.toString().buf(), pass.buf());
+        dl::logInfo("%s [%s]", progress.toString().buf(), pass.buf());
     }
     
     // This is the key method that receives images from the bella engine
     // IMPORTANT: This method is called from the bella engine's thread, NOT the main thread
     void onImage(dl::String pass, dl::bella_sdk::Image image) override {
-        //logInfo("Received image from bella: %d x %d", (int)image.width(), (int)image.height());
+        dl::logInfo("Received image from bella: %d x %d", (int)image.width(), (int)image.height());
         
         // Get the dimensions of the image
         int width = (int)image.width();
@@ -554,11 +579,12 @@ public:
             // Direct memory copy for optimal performance
             std::memcpy(buffer, rgba_data, width * height * 4);
             
-            // THREAD SAFETY: Instead of directly calling updateImage (which would create textures in the wrong thread),
-            // use the callback which will queue the data for processing by the main thread
+            // THREAD SAFETY: Use the callback to queue data for processing by the main thread
             try {
                 if (preview->getCallback()) {
-                    // This will queue the data for later processing in the main thread
+                    // Get the callback function from the preview object and invoke it
+                    // This passes the image data to the main thread via the callback
+                    // When called, this executes the lambda we defined in the constructor
                     preview->getCallback()(buffer, width, height, 4);
                     //std::cout << "Image data queued successfully" << std::endl;
                 } else {
@@ -580,21 +606,55 @@ public:
     }
     
     void onError(dl::String pass, dl::String msg) override {
-        //logError("%s [%s]", msg.buf(), pass.buf());
+        dl::logError("%s [%s]", msg.buf(), pass.buf());
     }
     
     void onStopped(dl::String pass) override {
-        //logInfo("Stopped %s", pass.buf());
+        dl::logInfo("Stopped %s", pass.buf());
     }
 };
 
-//#include "dl_core/dl_main.inl"
 int DL_main(dl::Args& args)
 {
+    int s_oomBellaLogContext = 0;
+    dl::subscribeLog(&s_oomBellaLogContext, oom::bella::log);
+    dl::flushStartupMessages();
+
+    args.add("wd",  "watchdir",   "",   "watch directory for changes");
+    args.add("tp",  "thirdparty",   "",   "prints third party licenses");
+    args.add("li",  "licenseinfo",   "",   "prints license info");
+    args.add("i",  "input",   "",   "prints license info");
+
+    if (args.helpRequested()) {
+        std::cout << args.help("poomer-efsw © 2025 Harvey Fong","", "1.0") << std::endl;
+        return 0;
+    }
+    
+    if (args.have("--licenseinfo")) {
+        std::cout << "poomer-raylib-bella_onimage © 2025 Harvey Fong" << std::endl;
+        std::cout << oom::license::printLicense() << std::endl;
+        return 0;
+    }
+ 
+    if (args.have("--thirdparty")) {
+        std::cout << oom::license::printBellaSDK() << "\n====\n" << std::endl;
+        return 0;
+    }
+    auto belPath = dl::bella_sdk::previewPath();
+
+    if (args.have("--input")) {
+        belPath = args.value("--input");
+        if (!dl::fs::exists(belPath)) {
+            dl::logError("Input file %s does not exist", belPath.buf());
+            return 1;
+        }
+    }
+
     try {
         SetTraceLogLevel(LOG_ERROR); 
         // Set raylib configuration flags before creating the window
         rl::SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_RESIZABLE);
+        
         PathTracerPreview preview(400, 400, "poomer-raylib-bella_onimage");
         if (!rl::IsWindowReady()) {
             std::cerr << "ERROR: Window initialization failed" << std::endl;
@@ -610,7 +670,9 @@ int DL_main(dl::Args& args)
             rl::EndDrawing();
         }
         //std::cout << "OpenGL context initialized" << std::endl;
-        
+
+        oom::misc::saveHDRI();
+
         // Initialize the bella engine
         dl::bella_sdk::Engine engine;
         engine.scene().loadDefs();
@@ -625,20 +687,15 @@ int DL_main(dl::Args& args)
         engine.subscribe(&engineObserver);
 
         // Get the preview scene with material sphere
-        auto path = dl::bella_sdk::previewPath();
-        if (path != "") {
-            //std::cout << "Loading scene: " << path.buf() << std::endl;
-            //logInfo("Loading scene: %s", path.buf());
+        if (belPath != "") {
             
-            // Use the read method to load the scene
-            if (!engine.scene().read(path)) {
-                std::cerr << "ERROR: Failed to read " << path.buf() << " from " << dl::fs::currentDir().buf() << std::endl;
-                dl::logError("Failed to read %s from %s", path.buf(), dl::fs::currentDir().buf());
+            // Use the read method to load the scene, load left some cruft
+            if (!engine.scene().read(belPath)) {
+                dl::logError("Failed to read %s from %s", belPath.buf(), dl::fs::currentDir().buf());
                 return 1;
             }
             
             if (!engine.start()) {
-                std::cerr << "ERROR: Engine failed to start" << std::endl;
                 dl::logError("Engine failed to start.");
                 return 1;
             }
@@ -646,10 +703,9 @@ int DL_main(dl::Args& args)
             // Store the initial camera state after the scene is loaded and engine started
             //preview.storeInitialCameraTransform();
             
-            //std::cout << "Engine started successfully" << std::endl;
         } else {
-            // For testing, load a sample image
-            preview.simulateDataFromPathTracer("oomer.png");
+            // For testing, load a sample image, seems to have broke
+            preview.simulateDataFromPathTracer("res/DayEnvironmentHDRI019_1K-TONEMAPPED.jpg");
         }
 
         // Run the preview window - this will block until the window is closed

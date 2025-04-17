@@ -31,13 +31,15 @@ apt install libx11-dev
 apt install xorg-dev
 ```
 
+cmake -DBUILD_SHARED_LIBS=OFF -DUSE_EXTERNAL_GLFW=OFF ..
+
 ```
 cd workdir
 git clone https://github.com/raysan5/raylib.git
-cd raylib/src
-make
-cd ../examples 
-make
+mkdir -p raylib/build
+cd raylib/build
+/Applications/CMake.app/Contents/bin/cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release ..
+make -j4
 cd ../..
 git clone https://github.com/raysan5/raygui.git
 git clone https://github.com/oomer/poomer-raylib-bella_onimage.git
